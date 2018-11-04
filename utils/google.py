@@ -368,12 +368,24 @@ class GoogleDrive:
         return
 
     def _remove_unwanted_paths(self, paths_list: list):
+        # remove ignored paths
         for item_path in copy(paths_list):
             for ignore_path in self.cfg.google.ignore_paths:
                 if item_path.lower().startswith(ignore_path.lower()):
                     log.debug("Ignoring %r because it starts with %r", item_path, ignore_path)
                     paths_list.remove(item_path)
                     continue
+
+        # remove unallowed extensions
+        for item_path in copy(paths_list):
+            allowed_file = False
+            for allowed_extension in self.cfg.google.allowed_extensions:
+                if item_path.lower().endswith(allowed_extension.lower()):
+                    allowed_file = True
+                    break
+            if not allowed_file:
+                log.debug("Ignoring %r because it was not an allowed extension", item_path)
+                paths_list.remove(item_path)
 
     def _process_changes(self, data: dict, callbacks: dict = {}):
         removed_file_paths = {}
