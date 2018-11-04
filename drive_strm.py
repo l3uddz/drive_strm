@@ -22,7 +22,7 @@ thread = None
 
 
 # Click
-@click.group(help='Drive_Strm for Google Drive.')
+@click.group(help='drive_strm for Google Drive.')
 @click.version_option('0.0.1', prog_name='drive_strm')
 @click.option(
     '--config-path',
@@ -84,7 +84,7 @@ def click_app(config_path, log_path, token_path, cache_path):
 # CLICK FUNCTIONS
 ############################################################
 
-@click_app.command(help='Authorize a Google Drive account')
+@click_app.command(help='Authorize Google Drive account')
 def authorize():
     log.info("Visit the link below and paste the authorization code")
     log.info(drive.get_auth_link())
@@ -99,7 +99,7 @@ def authorize():
     return
 
 
-@click_app.command(help='Run proxy server & changes monitor')
+@click_app.command(help='Run STRM server & changes monitor')
 def run():
     # check token exists
     if not os.path.exists(drive.token_path):
@@ -108,7 +108,7 @@ def run():
 
     # start changes monitor
     if cfg.google.poll_interval:
-        thread.start(thread_monitor_changes, 'ChangesMonitor')
+        thread.start(thread_monitor_changes, 'Changes_Monitor')
 
     log.info(f"Starting STRM Server on {cfg.server.listen_ip}:{cfg.server.listen_port}")
     server = WSGIServer((cfg.server.listen_ip, cfg.server.listen_port), flask_app, log=None)
