@@ -7,7 +7,7 @@ log = logger.get_logger(__name__)
 
 
 def write_strms(cfg, file_id, file_paths):
-    strm_url = f"{cfg.strm.access_url.lstrip('/')}/strm/{file_id}"
+    strm_url = f"{cfg.strm.access_url.rstrip('/')}/strm/{file_id}"
     root_path = cfg.strm.root_path
     for file_path in file_paths:
         new_file_path = os.path.join(root_path, f'{file_path}.strm')
