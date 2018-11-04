@@ -85,18 +85,26 @@ def click_app(config_path, log_path, token_path, cache_path):
 ############################################################
 
 @click_app.command(help='Authorize Google Drive account')
-def authorize():
-    log.info("Visit the link below and paste the authorization code")
-    log.info(drive.get_auth_link())
-    auth_code = input("Enter authorization code: ")
+@click.option('--auth-code', '-c', default=None, required=False, help='Authorization Code', )
+@click.option('--link-only', '-l', required=False, is_flag=True, help='Authorization Link only to stdout')
+def authorize(auth_code=None, link_only=False):
+    if link_only:
+        print(drive.get_auth_link())
+        sys.exit(0)
+
+    if not auth_code:
+        log.info("Visit the link below and paste the authorization code")
+        log.info(drive.get_auth_link())
+        auth_code = input("Enter authorization code: ")
+
     log.info("Exchanging authorization code for an access token...")
     token = drive.exchange_code(auth_code)
     if not token or 'access_token' not in token:
         log.error("Failed to exchange auth code for an access token.....")
-        return
+        sys.exit(1)
     else:
         log.info(f"Exchanged authorization code for an access token:\n\n{json.dumps(token, indent=2)}\n")
-    return
+    sys.exit(0)
 
 
 @click_app.command(help='Run STRM server & changes monitor')
