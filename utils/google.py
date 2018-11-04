@@ -393,12 +393,24 @@ class GoogleDrive:
             allowed_file = False
             for allowed_mime in self.cfg.google.allowed_mimes:
                 if allowed_mime.lower() in mime_type.lower():
-                    allowed_file = True
-                    break
+                    if 'video' in mime_type.lower():
+                        # we want to validate this is not a .sub file, which for some reason, google shows as video/MP2G
+                        double_checked_allowed = True
+                        for item_path in paths_list:
+                            if item_path.lower().endswith('.sub'):
+                                double_checked_allowed = False
+                        if double_checked_allowed:
+                            allowed_file = True
+                            break
+                    else:
+                        allowed_file = True
+                        break
+
             if not allowed_file:
                 log.debug("Ignoring %s because it was not an allowed mime: %s", paths_list, mime_type)
                 for item_path in copy(paths_list):
                     paths_list.remove(item_path)
+
 
     def _process_changes(self, data: dict, callbacks: dict = {}):
         removed_file_paths = {}
