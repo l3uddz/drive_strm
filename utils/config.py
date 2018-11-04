@@ -59,7 +59,10 @@ class Config(object, metaclass=Singleton):
             'poll_interval': 120,
             'teamdrive': False,
             'ignore_paths': [],
-            'allowed_extensions': []
+            'allowed_extensions': [],
+            'allowed_mimes': [],
+            'use_allowed_extensions': False,
+            'use_allowed_mimes': True
         }
     })
 
@@ -104,6 +107,8 @@ class Config(object, metaclass=Singleton):
                                                   'mp4', 'm4p', 'm4v', 'mpg', 'mp2', 'mpeg', 'mpe', 'mpv', 'm2v', 'm4v',
                                                   'svi', '3gp', '3g2', 'mxf', 'roq', 'nsv', 'f4v', 'f4p', 'f4a', 'f4b',
                                                   'mp3', 'flac', 'ts']
+        config['google']['allowed_mimes'] = ['video']
+
         return config
 
     @property

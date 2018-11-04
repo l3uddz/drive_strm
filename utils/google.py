@@ -367,8 +367,8 @@ class GoogleDrive:
         self.cache.commit()
         return
 
-    def _remove_unwanted_paths(self, paths_list: list):
-        # remove ignored paths
+    def _remove_unwanted_paths(self, paths_list: list, mime_type: str):
+        # remove ignored paths - this is always enabled
         for item_path in copy(paths_list):
             for ignore_path in self.cfg.google.ignore_paths:
                 if item_path.lower().startswith(ignore_path.lower()):
@@ -377,15 +377,28 @@ class GoogleDrive:
                     continue
 
         # remove unallowed extensions
-        for item_path in copy(paths_list):
+        if self.cfg.google.use_allowed_extensions:
+            for item_path in copy(paths_list):
+                allowed_file = False
+                for allowed_extension in self.cfg.google.allowed_extensions:
+                    if item_path.lower().endswith(allowed_extension.lower()):
+                        allowed_file = True
+                        break
+                if not allowed_file:
+                    log.debug("Ignoring %r because it was not an allowed extension", item_path)
+                    paths_list.remove(item_path)
+
+        # remove unallowed mimes
+        if self.cfg.google.use_allowed_mimes:
             allowed_file = False
-            for allowed_extension in self.cfg.google.allowed_extensions:
-                if item_path.lower().endswith(allowed_extension.lower()):
+            for allowed_mime in self.cfg.google.allowed_mimes:
+                if allowed_mime.lower() in mime_type.lower():
                     allowed_file = True
                     break
             if not allowed_file:
-                log.debug("Ignoring %r because it was not an allowed extension", item_path)
-                paths_list.remove(item_path)
+                log.debug("Ignoring %s because it was not an allowed mime: %s", paths_list, mime_type)
+                for item_path in copy(paths_list):
+                    paths_list.remove(item_path)
 
     def _process_changes(self, data: dict, callbacks: dict = {}):
         removed_file_paths = {}
@@ -410,7 +423,8 @@ class GoogleDrive:
                                                                                                       in
                                                                                                       change['file']
                                                                      else None)
-                        self._remove_unwanted_paths(item_paths)
+                        self._remove_unwanted_paths(item_paths, change['file']['mimeType'] if 'mimeType' in change[
+                            'file'] else 'Unknown')
                         if success and len(item_paths):
                             if change['fileId'] in removed_file_paths:
                                 removed_file_paths[change['fileId']].extend(item_paths)
@@ -446,9 +460,12 @@ class GoogleDrive:
 
                 # remove unwanted paths
                 if existing_success and len(existing_cache_item_paths):
-                    self._remove_unwanted_paths(existing_cache_item_paths)
+                    self._remove_unwanted_paths(existing_cache_item_paths,
+                                                change['file']['mimeType'] if 'mimeType' in change[
+                                                    'file'] else 'Unknown')
                 if success and len(item_paths):
-                    self._remove_unwanted_paths(item_paths)
+                    self._remove_unwanted_paths(item_paths, change['file']['mimeType'] if 'mimeType' in change[
+                        'file'] else 'Unknown')
 
                 # was this an existing item?
                 if (existing_cache_item is not None and existing_success and len(existing_cache_item_paths)) and (
