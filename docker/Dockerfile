@@ -22,9 +22,13 @@ COPY [".", "${APP_DIR}"]
 # Install dependencies
 RUN \
   echo "** BRANCH: ${BRANCH} COMMIT: ${COMMIT} **" && \
+  echo "** Install build dependencies **" && \
+  apk --no-cache -U add --virtual .build-deps gcc musl-dev && \
   echo "** Install PIP dependencies **" && \
   pip install --no-cache-dir --upgrade pip setuptools && \
-  pip install --no-cache-dir --upgrade -r ${APP_DIR}/requirements.txt
+  pip install --no-cache-dir --upgrade -r ${APP_DIR}/requirements.txt && \
+  echo "** Remove build dependencies **" && \
+  apk del .build-deps
 
 # Change directory
 WORKDIR ${APP_DIR}
