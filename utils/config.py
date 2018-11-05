@@ -54,15 +54,17 @@ class Config(object, metaclass=Singleton):
         },
         # google
         'google': {
+            'allowed': {
+                'file_paths': [],
+                'file_extensions': False,
+                'file_extensions_list': [],
+                'mime_types': True,
+                'mime_types_list': []
+            },
             'client_id': '',
             'client_secret': '',
             'poll_interval': 120,
-            'teamdrive': False,
-            'ignore_paths': [],
-            'allowed_extensions': [],
-            'allowed_mimes': [],
-            'use_allowed_extensions': False,
-            'use_allowed_mimes': True
+            'teamdrive': False
         }
     })
 
@@ -101,13 +103,15 @@ class Config(object, metaclass=Singleton):
         config = self.base_config
 
         # example google
-        config['google']['ignore_paths'] = ['My Drive/downloads/', 'My Drive/Backups/', 'My Drive/Media/Music/']
-        config['google']['allowed_extensions'] = ['webm', 'mkv', 'flv', 'vob', 'ogv', 'ogg', 'drc', 'gif', 'gifv',
-                                                  'mng', 'avi', 'mov', 'qt', 'wmv', 'yuv', 'rm', 'rmvb', 'asf', 'amv',
-                                                  'mp4', 'm4p', 'm4v', 'mpg', 'mp2', 'mpeg', 'mpe', 'mpv', 'm2v', 'm4v',
-                                                  'svi', '3gp', '3g2', 'mxf', 'roq', 'nsv', 'f4v', 'f4p', 'f4a', 'f4b',
-                                                  'mp3', 'flac', 'ts']
-        config['google']['allowed_mimes'] = ['video']
+        config['google']['allowed']['file_paths'] = ['My Drive/downloads/', 'My Drive/Backups/',
+                                                     'My Drive/Media/Music/']
+        config['google']['allowed']['file_extensions_list'] = ['webm', 'mkv', 'flv', 'vob', 'ogv', 'ogg', 'drc', 'gif',
+                                                               'gifv', 'mng', 'avi', 'mov', 'qt', 'wmv', 'yuv', 'rm',
+                                                               'rmvb', 'asf', 'amv', 'mp4', 'm4p', 'm4v', 'mpg', 'mp2',
+                                                               'mpeg', 'mpe', 'mpv', 'm2v', 'm4v', 'svi', '3gp', '3g2',
+                                                               'mxf', 'roq', 'nsv', 'f4v', 'f4p', 'f4a', 'f4b', 'mp3',
+                                                               'flac', 'ts']
+        config['google']['allowed']['mime_types_list'] = ['video']
 
         return config
 

@@ -368,19 +368,23 @@ class GoogleDrive:
         return
 
     def _remove_unwanted_paths(self, paths_list: list, mime_type: str):
-        # remove ignored paths - this is always enabled
+        # remove paths that were not allowed - this is always enabled
         for item_path in copy(paths_list):
-            for ignore_path in self.cfg.google.ignore_paths:
-                if item_path.lower().startswith(ignore_path.lower()):
-                    log.debug("Ignoring %r because it starts with %r", item_path, ignore_path)
-                    paths_list.remove(item_path)
-                    continue
+            allowed_path = False
+            for allowed_file_path in self.cfg.google.allowed.file_paths:
+                if item_path.lower().startswith(allowed_file_path.lower()):
+                    allowed_path = True
+                    break
+            if not allowed_path:
+                log.debug("Ignoring %r because its not an allowed path", item_path)
+                paths_list.remove(item_path)
+                continue
 
         # remove unallowed extensions
-        if self.cfg.google.use_allowed_extensions:
+        if self.cfg.google.allowed.file_extensions:
             for item_path in copy(paths_list):
                 allowed_file = False
-                for allowed_extension in self.cfg.google.allowed_extensions:
+                for allowed_extension in self.cfg.google.allowed.file_extensions_list:
                     if item_path.lower().endswith(allowed_extension.lower()):
                         allowed_file = True
                         break
@@ -389,9 +393,9 @@ class GoogleDrive:
                     paths_list.remove(item_path)
 
         # remove unallowed mimes
-        if self.cfg.google.use_allowed_mimes:
+        if self.cfg.google.allowed.mime_types:
             allowed_file = False
-            for allowed_mime in self.cfg.google.allowed_mimes:
+            for allowed_mime in self.cfg.google.allowed.mime_types_list:
                 if allowed_mime.lower() in mime_type.lower():
                     if 'video' in mime_type.lower():
                         # we want to validate this is not a .sub file, which for some reason, google shows as video/MP2G
@@ -410,7 +414,6 @@ class GoogleDrive:
                 log.debug("Ignoring %s because it was not an allowed mime: %s", paths_list, mime_type)
                 for item_path in copy(paths_list):
                     paths_list.remove(item_path)
-
 
     def _process_changes(self, data: dict, callbacks: dict = {}):
         removed_file_paths = {}
