@@ -103,8 +103,7 @@ class Config(object, metaclass=Singleton):
         config = self.base_config
 
         # example google
-        config['google']['allowed']['file_paths'] = ['My Drive/downloads/', 'My Drive/Backups/',
-                                                     'My Drive/Media/Music/']
+        config['google']['allowed']['file_paths'] = ['My Drive/Media/Movies/', 'My Drive/Media/TV/']
         config['google']['allowed']['file_extensions_list'] = ['webm', 'mkv', 'flv', 'vob', 'ogv', 'ogg', 'drc', 'gif',
                                                                'gifv', 'mng', 'avi', 'mov', 'qt', 'wmv', 'yuv', 'rm',
                                                                'rmvb', 'asf', 'amv', 'mp4', 'm4p', 'm4v', 'mpg', 'mp2',
