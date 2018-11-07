@@ -161,10 +161,21 @@ def thread_monitor_changes():
 @flask_app.route('/strm/<request_file>')
 def stream_bridge(request_file):
     global drive
+    request_data = {}
+
+    try:
+        if request.content_type == 'application/json':
+            request_data = request.get_json(silent=True)
+        elif request.method == 'POST':
+            request_data = request.form.to_dict()
+        elif request.method == 'GET':
+            request_data = request.args.to_dict()
+    except Exception:
+        log.exception(f"Exception parsing request data from {request.remote_addr}: ")
 
     item_name = drive.get_item_name_from_cache(request_file)
-
-    if cfg.server.direct_streams:
+    if (cfg.server.direct_streams and ('proxy' not in request_data or request_data['proxy'] != '1')) or (
+            'direct' in request_data and request_data['direct'] == '1'):
         # we are in direct streams mode...
         direct_stream_url = drive.get_stream_link(request_file)
         log.info(
@@ -195,7 +206,7 @@ def generate_data_from_response(resp, chunk=4096):
 
 
 def serve_partial(file_id, range_header):
-    # Make request to YouTube
+    # Make request to Google
     headers = {'Range': range_header}
     r = drive.get_file(file_id, headers=headers, stream=True)
 
