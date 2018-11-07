@@ -123,11 +123,6 @@ def run():
     server.serve_forever()
 
 
-@click_app.command(help='Test')
-def link():
-    log.info(json.dumps(drive.get_transcodes('0B7H8oOg88t31NERHQV82VmRmUFk'), indent=2))
-
-
 ############################################################
 # FUNCTIONS
 ############################################################
