@@ -229,12 +229,6 @@ def stream_bridge(request_file):
     return abort(500)
 
 
-@flask_app.after_request
-def after_request(response):
-    response.headers.add('Accept-Ranges', 'bytes')
-    return response
-
-
 def generate_data_from_response(resp, chunk=4096):
     for data_chunk in resp.iter_content(chunk_size=chunk):
         yield data_chunk
