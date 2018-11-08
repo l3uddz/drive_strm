@@ -50,7 +50,8 @@ class Config(object, metaclass=Singleton):
         # strm
         'strm': {
             'access_url': 'http://reachable.url.com',
-            'root_path': '/strm'
+            'root_path': '/strm',
+            'show_transcodes': False
         },
         # google
         'google': {
