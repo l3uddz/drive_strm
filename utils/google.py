@@ -6,6 +6,7 @@ from threading import Lock
 from time import time
 from urllib.parse import parse_qs
 
+from expiringdict import ExpiringDict
 from requests import Response, Request
 from requests_oauthlib import OAuth2Session
 from sqlitedict import SqliteDict
@@ -30,6 +31,7 @@ class GoogleDrive:
         self.cache_path = cache_path
         self.cache = SqliteDict(self.cache_path, tablename='cache', encode=json.dumps, decode=json.loads,
                                 autocommit=False)
+        self.transcodes_cache = ExpiringDict(max_len=10000, max_age_seconds=60 * 5)
         self.token = self._load_token()
         self.query_lock = Lock()
         self.http = self._new_http_object()
@@ -179,6 +181,13 @@ class GoogleDrive:
         return req.url
 
     def get_transcodes(self, file_id):
+        # do we have the transcoded versions already cached within the last 5 minutes?
+        cached_transcodes = self.transcodes_cache.get(file_id, None)
+        if cached_transcodes is not None and len(cached_transcodes):
+            log.debug(f"Loaded {len(cached_transcodes)} transcode streams from temporary cache for: {file_id}")
+            return cached_transcodes
+
+        # retrieve transcoded versions from google docs
         success, resp, data = self.query(f'https://docs.google.com/get_video_info?docid={file_id}')
         if not success or (not data or 'fmt_stream_map' not in data or 'fmt_list' not in data):
             log.error(f"Failed to find transcoded versions data for: {file_id}")
@@ -211,6 +220,9 @@ class GoogleDrive:
             log.error(f"Failed to parse transcoded streams (fmt_stream_map) for: {file_id}")
             return None
 
+        # cache the transcode streams for 5 minutes
+        self.transcodes_cache[file_id] = transcode_streams
+        log.debug(f"Added {len(transcode_streams)} transcode streams to temporary cache for: {file_id}")
         return transcode_streams
 
     ############################################################

@@ -137,6 +137,15 @@ def removed_items(items: dict = {}):
         strm.remove_strms(cfg, file_paths)
 
 
+def sorted_transcodes_string(transcode_versions: dict):
+    transcodes_string = 'Unknown'
+    try:
+        transcodes_string = ', '.join(sorted(transcode_versions.keys(), key=int, reverse=True))
+    except Exception:
+        pass
+    return transcodes_string
+
+
 ############################################################
 # THREADS
 ############################################################
@@ -181,7 +190,8 @@ def stream_bridge(request_file):
         if not transcoded_versions or not len(transcoded_versions):
             log.error(f"Failed to retrieve transcoded versions for {request_file} / {item_name}")
         else:
-            log.debug(f"Found {len(transcoded_versions)} transcoded versions for {request_file} / {item_name}")
+            log.info(f"Found {len(transcoded_versions)} transcoded versions for {request_file} / {item_name}: "
+                     f"{sorted_transcodes_string(transcoded_versions)}")
             if request_data['transcode'] not in transcoded_versions:
                 log.error(
                     f"There was no {request_data['transcode']} version available for {request_file} / {item_name}")
