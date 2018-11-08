@@ -397,7 +397,7 @@ class GoogleDrive:
         # update internal token dict
         self.token.update(token)
         try:
-            if self.token_refresh_lock.locked:
+            if self.token_refresh_lock.locked():
                 self.token_refresh_lock.release()
         except Exception:
             log.exception("Exception releasing token_refresh_lock: ")
