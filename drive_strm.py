@@ -229,20 +229,23 @@ def stream_bridge(request_file):
     return abort(500)
 
 
-def generate_data_from_response(resp, chunk=4096):
+def generate_data_from_response(resp, chunk=2500000):
     for data_chunk in resp.iter_content(chunk_size=chunk):
         yield data_chunk
 
 
 def serve_partial(file_id, range_header):
+    global cfg
+
     # Make request to Google
     headers = {'Range': range_header}
     r = drive.get_file(file_id, headers=headers, stream=True)
 
     # Build response
-    rv = Response(stream_with_context(generate_data_from_response(r)), 206, direct_passthrough=True)
+    rv = Response(stream_with_context(generate_data_from_response(r, chunk=cfg.strm.chunk_size)), 206,
+                  direct_passthrough=True)
     rv.headers.add('Content-Range', r.headers.get('Content-Range'))
-    rv.headers.add('Content-Length', r.headers['Content-Length'])
+    rv.headers.add('Content-Length', r.headers.get('Content-Length'))
     rv.headers.add('Content-Type', r.headers.get('Content-Type'))
     return rv
 
