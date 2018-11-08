@@ -4,7 +4,9 @@ import os
 from copy import copy
 from threading import Lock
 from time import time
+from urllib.parse import parse_qs
 
+from expiringdict import ExpiringDict
 from requests import Response, Request
 from requests_oauthlib import OAuth2Session
 from sqlitedict import SqliteDict
@@ -29,6 +31,7 @@ class GoogleDrive:
         self.cache_path = cache_path
         self.cache = SqliteDict(self.cache_path, tablename='cache', encode=json.dumps, decode=json.loads,
                                 autocommit=False)
+        self.transcodes_cache = ExpiringDict(max_len=10000, max_age_seconds=2 * (60 * 60))
         self.token = self._load_token()
         self.query_lock = Lock()
         self.http = self._new_http_object()
@@ -154,7 +157,8 @@ class GoogleDrive:
         return
 
     def get_file(self, file_id, stream=True, headers=None):
-        success, resp, data = self.query('/v2/files/%s' % file_id, params={
+        req_url = '/v2/files/%s' % file_id if not file_id.startswith('http') else file_id
+        success, resp, data = self.query(req_url, params={
             'includeTeamDriveItems': self.cfg.google.teamdrive,
             'supportsTeamDrives': self.cfg.google.teamdrive,
             'alt': 'media'
@@ -175,6 +179,51 @@ class GoogleDrive:
                               'access_token': self.token['access_token']}).prepare()
         log.debug(f'Direct Stream URL: {req.url}')
         return req.url
+
+    def get_transcodes(self, file_id):
+        # do we have the transcoded versions already cached within the last 5 minutes?
+        cached_transcodes = self.transcodes_cache.get(file_id, None)
+        if cached_transcodes is not None and len(cached_transcodes):
+            log.debug(f"Loaded {len(cached_transcodes)} transcode streams from temporary cache for: {file_id}")
+            return cached_transcodes
+
+        # retrieve transcoded versions from google docs
+        success, resp, data = self.query(f'https://docs.google.com/get_video_info?docid={file_id}')
+        if not success or (not data or 'fmt_stream_map' not in data or 'fmt_list' not in data):
+            log.error(f"Failed to find transcoded versions data for: {file_id}")
+            return None
+
+        # parse main response
+        tmp = parse_qs(data)
+        tmp_versions = tmp['fmt_list'][0]
+        tmp_stream_map = tmp['fmt_stream_map'][0]
+
+        # parse required variables
+        transcode_versions = {}
+        transcode_streams = {}
+
+        # parse version list
+        for version in tmp_versions.split(','):
+            tmp_v = version.split('/')
+            transcode_versions[tmp_v[0]] = tmp_v[1].split('x')[1]
+
+        if not len(transcode_versions):
+            log.error(f"Failed to parse transcoded versions (fmt_list) for: {file_id}")
+            return None
+
+        # parse transcode lists
+        for stream in tmp_stream_map.split(','):
+            tmp_s = stream.split('|')
+            transcode_streams[transcode_versions[tmp_s[0]]] = tmp_s[1]
+
+        if not len(transcode_streams):
+            log.error(f"Failed to parse transcoded streams (fmt_stream_map) for: {file_id}")
+            return None
+
+        # cache the transcode streams for 5 minutes
+        self.transcodes_cache[file_id] = transcode_streams
+        log.debug(f"Added {len(transcode_streams)} transcode streams to temporary cache for: {file_id}")
+        return transcode_streams
 
     ############################################################
     # CACHE

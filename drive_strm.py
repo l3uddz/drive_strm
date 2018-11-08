@@ -137,6 +137,15 @@ def removed_items(items: dict = {}):
         strm.remove_strms(cfg, file_paths)
 
 
+def sorted_transcodes_string(transcode_versions: dict):
+    transcodes_string = 'Unknown'
+    try:
+        transcodes_string = ', '.join(sorted(transcode_versions.keys(), key=int, reverse=True))
+    except Exception:
+        pass
+    return transcodes_string
+
+
 ############################################################
 # THREADS
 ############################################################
@@ -174,6 +183,32 @@ def stream_bridge(request_file):
         log.exception(f"Exception parsing request data from {request.remote_addr}: ")
 
     item_name = drive.get_item_name_from_cache(request_file)
+
+    # transcoded version request?
+    if 'transcode' in request_data:
+        transcoded_versions = drive.get_transcodes(request_file)
+        if not transcoded_versions or not len(transcoded_versions):
+            log.error(f"Failed to retrieve transcoded versions for {request_file} / {item_name}")
+        else:
+            log.info(f"Found {len(transcoded_versions)} transcoded versions for {request_file} / {item_name}: "
+                     f"{sorted_transcodes_string(transcoded_versions)}")
+            if request_data['transcode'] not in transcoded_versions:
+                log.error(
+                    f"There was no {request_data['transcode']} version available for {request_file} / {item_name}")
+            else:
+                log.info(f"Proxy stream request from {request.remote_addr} for {request_file} / {item_name} / "
+                         f"transcode: {request_data['transcode']}")
+                try:
+                    return serve_partial(transcoded_versions[request_data['transcode']], request.headers.get('Range'))
+                except TimeoutError:
+                    pass
+                except Exception:
+                    log.exception(
+                        f"Exception proxying stream request from {request.remote_addr} for "
+                        f"{request_file} / {item_name} / transcode: {request_data['transcode']}: ")
+                return abort(500)
+
+    # handle stream
     if (cfg.server.direct_streams and ('proxy' not in request_data or request_data['proxy'] != '1')) or (
             'direct' in request_data and request_data['direct'] == '1'):
         # we are in direct streams mode...
@@ -181,16 +216,16 @@ def stream_bridge(request_file):
         log.info(
             f"Direct stream request from {request.remote_addr} for {request_file} / {item_name}")
         return redirect(direct_stream_url)
-
-    # we are in proxy mode, lets proxy the stream
-    log.info(f"Proxy stream request from {request.remote_addr} for {request_file} / {item_name}")
-    try:
-        return serve_partial(request_file, request.headers.get('Range'))
-    except TimeoutError:
-        pass
-    except Exception:
-        log.exception(
-            f"Exception proxying stream request from {request.remote_addr} for {request_file} / {item_name}: ")
+    else:
+        # we are in proxy mode, lets proxy the stream
+        log.info(f"Proxy stream request from {request.remote_addr} for {request_file} / {item_name}")
+        try:
+            return serve_partial(request_file, request.headers.get('Range'))
+        except TimeoutError:
+            pass
+        except Exception:
+            log.exception(
+                f"Exception proxying stream request from {request.remote_addr} for {request_file} / {item_name}: ")
     return abort(500)
 
 
