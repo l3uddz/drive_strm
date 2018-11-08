@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import time
 from copy import copy
 from threading import Lock
 from time import time
@@ -33,7 +34,7 @@ class GoogleDrive:
                                 autocommit=False)
         self.transcodes_cache = ExpiringDict(max_len=10000, max_age_seconds=2 * (60 * 60))
         self.token = self._load_token()
-        self.query_lock = Lock()
+        self.token_refresh_lock = Lock()
         self.http = self._new_http_object()
 
     ############################################################
@@ -336,35 +337,39 @@ class GoogleDrive:
     def _do_query(self, request_url: str, method: str, **kwargs):
         tries: int = 0
         max_tries: int = 2
+        lock_acquirer: bool = False
         resp: Response = None
 
         # remove un-needed kwargs
         kwargs.pop('fetch_all_pages', None)
         kwargs.pop('page_token_callback', None)
 
-        # acquire query_lock
-        # we do this, so only 1 thread can query at the same time, this will allow us
-        # to maintain / refresh the tokens only in one thread
-        with self.query_lock:
-            # do query
-            while tries < max_tries:
-                if method == 'POST':
-                    resp = self.http.post(request_url, timeout=30, **kwargs)
-                elif method == 'PATCH':
-                    resp = self.http.patch(request_url, timeout=30, **kwargs)
-                elif method == 'DELETE':
-                    resp = self.http.delete(request_url, timeout=30, **kwargs)
-                else:
-                    resp = self.http.get(request_url, timeout=30, **kwargs)
-                tries += 1
+        # do query
+        while tries < max_tries:
+            if self.token_refresh_lock.locked() and not lock_acquirer:
+                log.debug("Token refresh lock is currently acquired... trying again in 500ms")
+                time.sleep(0.5)
+                continue
 
-                if resp.status_code == 401 and tries < max_tries:
-                    # unauthorized error, lets refresh token and retry
-                    log.warning(f"Unauthorized Response (Attempts {tries}/{max_tries})")
-                    self.token['expires_at'] = time() - 10
-                    self.http = self._new_http_object()
-                else:
-                    break
+            if method == 'POST':
+                resp = self.http.post(request_url, timeout=30, **kwargs)
+            elif method == 'PATCH':
+                resp = self.http.patch(request_url, timeout=30, **kwargs)
+            elif method == 'DELETE':
+                resp = self.http.delete(request_url, timeout=30, **kwargs)
+            else:
+                resp = self.http.get(request_url, timeout=30, **kwargs)
+            tries += 1
+
+            if resp.status_code == 401 and tries < max_tries:
+                # unauthorized error, lets refresh token and retry
+                self.token_refresh_lock.acquire(False)
+                lock_acquirer = True
+                log.warning(f"Unauthorized Response (Attempts {tries}/{max_tries})")
+                self.token['expires_at'] = time() - 10
+                self.http = self._new_http_object()
+            else:
+                break
 
         return resp
 
@@ -391,6 +396,11 @@ class GoogleDrive:
     def _token_saver(self, token: dict):
         # update internal token dict
         self.token.update(token)
+        try:
+            if self.token_refresh_lock.locked:
+                self.token_refresh_lock.release()
+        except Exception:
+            log.exception("Exception releasing token_refresh_lock: ")
         self._dump_token()
         log.info("Renewed access token!")
         return
