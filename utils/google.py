@@ -31,7 +31,7 @@ class GoogleDrive:
         self.cache_path = cache_path
         self.cache = SqliteDict(self.cache_path, tablename='cache', encode=json.dumps, decode=json.loads,
                                 autocommit=False)
-        self.transcodes_cache = ExpiringDict(max_len=10000, max_age_seconds=60 * 5)
+        self.transcodes_cache = ExpiringDict(max_len=10000, max_age_seconds=2 * (60 * 60))
         self.token = self._load_token()
         self.query_lock = Lock()
         self.http = self._new_http_object()
