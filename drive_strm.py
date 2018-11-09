@@ -229,7 +229,7 @@ def stream_bridge(request_file):
     return abort(500)
 
 
-def generate_data_from_response(resp, chunk=1000000):
+def generate_data_from_response(resp, chunk=500000):
     for data_chunk in resp.iter_content(chunk_size=chunk):
         yield data_chunk
 
