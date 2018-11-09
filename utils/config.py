@@ -52,7 +52,7 @@ class Config(object, metaclass=Singleton):
             'access_url': 'http://reachable.url.com',
             'root_path': '/strm',
             'show_transcodes': False,
-            'chunk_size': 500000
+            'chunk_size': 250000
         },
         # google
         'google': {

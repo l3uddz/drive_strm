@@ -5,7 +5,7 @@ import sys
 import time
 
 import click
-from flask import Flask, Response, stream_with_context, request, redirect, abort
+from flask import Flask, Response, request, redirect, abort
 from gevent.pywsgi import WSGIServer
 
 ############################################################
@@ -229,8 +229,8 @@ def stream_bridge(request_file):
     return abort(500)
 
 
-def generate_data_from_response(resp, chunk=500000):
-    for data_chunk in resp.iter_content(chunk_size=chunk):
+def generate_data_from_response(resp, chunk=250000):
+    for data_chunk in resp.stream(chunk, decode_content=False):
         yield data_chunk
 
 
@@ -242,7 +242,7 @@ def serve_partial(file_id, range_header):
     r = drive.get_file(file_id, headers=headers, stream=True)
 
     # Build response
-    rv = Response(stream_with_context(generate_data_from_response(r, chunk=cfg.strm.chunk_size)), 206,
+    rv = Response(generate_data_from_response(r.raw, chunk=cfg.strm.chunk_size), 206,
                   direct_passthrough=True)
     rv.headers.add('Content-Range', r.headers.get('Content-Range'))
     rv.headers.add('Content-Length', r.headers.get('Content-Length'))
