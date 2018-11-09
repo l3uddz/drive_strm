@@ -36,6 +36,6 @@ def remove_strms(cfg, file_paths):
             for version in transcode_versions:
                 files_to_remove[version] = os.path.join(root_path, f'{file_path} - {version}.strm')
 
-        for strm_version, file_path in file_paths.items():
+        for strm_version, file_path in files_to_remove.items():
             log.debug(f"Removing STRM: {file_path}")
             path.delete(file_path)
