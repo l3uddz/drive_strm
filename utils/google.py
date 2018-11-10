@@ -157,13 +157,13 @@ class GoogleDrive:
                                          callbacks=callbacks)
         return
 
-    def get_file(self, file_id, stream=True, headers=None):
+    def get_file(self, file_id, stream=True, headers=None, timeout=30):
         req_url = '/v2/files/%s' % file_id if not file_id.startswith('http') else file_id
         success, resp, data = self.query(req_url, params={
             'includeTeamDriveItems': self.cfg.google.teamdrive,
             'supportsTeamDrives': self.cfg.google.teamdrive,
             'alt': 'media'
-        }, stream=stream, headers=headers)
+        }, stream=stream, headers=headers, timeout=timeout)
         return resp
 
     def get_stream_link(self, file_id):
@@ -339,6 +339,12 @@ class GoogleDrive:
         max_tries: int = 2
         lock_acquirer: bool = False
         resp: Response = None
+        use_timeout: int = 30
+
+        # override default timeout
+        if 'timeout' in kwargs and isinstance(kwargs['timeout'], int):
+            use_timeout = kwargs['timeout']
+            kwargs.pop('timeout', None)
 
         # remove un-needed kwargs
         kwargs.pop('fetch_all_pages', None)
@@ -352,13 +358,13 @@ class GoogleDrive:
                 continue
 
             if method == 'POST':
-                resp = self.http.post(request_url, timeout=30, **kwargs)
+                resp = self.http.post(request_url, timeout=use_timeout, **kwargs)
             elif method == 'PATCH':
-                resp = self.http.patch(request_url, timeout=30, **kwargs)
+                resp = self.http.patch(request_url, timeout=use_timeout, **kwargs)
             elif method == 'DELETE':
-                resp = self.http.delete(request_url, timeout=30, **kwargs)
+                resp = self.http.delete(request_url, timeout=use_timeout, **kwargs)
             else:
-                resp = self.http.get(request_url, timeout=30, **kwargs)
+                resp = self.http.get(request_url, timeout=use_timeout, **kwargs)
             tries += 1
 
             if resp.status_code == 401 and tries < max_tries:

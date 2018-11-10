@@ -239,7 +239,7 @@ def serve_partial(file_id, range_header):
 
     # Make request to Google
     headers = {'Range': range_header}
-    r = drive.get_file(file_id, headers=headers, stream=True)
+    r = drive.get_file(file_id, headers=headers, timeout=1, stream=True)
 
     # Build response
     rv = Response(generate_data_from_response(r.raw, chunk=cfg.strm.chunk_size), 206,
@@ -247,6 +247,7 @@ def serve_partial(file_id, range_header):
     rv.headers.add('Content-Range', r.headers.get('Content-Range'))
     rv.headers.add('Content-Length', r.headers.get('Content-Length'))
     rv.headers.add('Content-Type', r.headers.get('Content-Type'))
+    rv.headers.add('Accept-Ranges', 'bytes')
     return rv
 
 
