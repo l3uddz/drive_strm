@@ -230,8 +230,13 @@ def stream_bridge(request_file):
 
 
 def generate_data_from_response(resp, chunk=250000):
+    yield_timeout = 3
+    start = time.time()
     for data_chunk in resp.stream(chunk, decode_content=False):
+        if time.time() - start > yield_timeout:
+            break
         yield data_chunk
+        start = time.time()
 
 
 def serve_partial(file_id, range_header):
@@ -239,7 +244,7 @@ def serve_partial(file_id, range_header):
 
     # Make request to Google
     headers = {'Range': range_header}
-    r = drive.get_file(file_id, headers=headers, timeout=1, stream=True)
+    r = drive.get_file(file_id, headers=headers, timeout=2, stream=True)
 
     # Build response
     rv = Response(generate_data_from_response(r.raw, chunk=cfg.strm.chunk_size), 206,
