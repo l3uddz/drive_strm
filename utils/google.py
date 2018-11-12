@@ -198,6 +198,7 @@ class GoogleDrive:
         tmp = parse_qs(data)
         tmp_versions = tmp['fmt_list'][0]
         tmp_stream_map = tmp['fmt_stream_map'][0]
+        drive_stream_cookie = resp.cookies.get('DRIVE_STREAM', '')
 
         # parse required variables
         transcode_versions = {}
