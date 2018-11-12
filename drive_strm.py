@@ -5,7 +5,7 @@ import sys
 import time
 
 import click
-from flask import Flask, Response, request, redirect, abort
+from flask import Flask, Response, request, redirect, abort, stream_with_context
 from gevent.pywsgi import WSGIServer
 
 ############################################################
@@ -152,7 +152,6 @@ def sorted_transcodes_string(transcode_versions: dict):
 
 def thread_monitor_changes():
     log.info("Changes monitor started")
-
     while True:
         try:
             drive.get_changes(new_items, removed_items)
@@ -229,6 +228,7 @@ def stream_bridge(request_file):
     return abort(500)
 
 
+@stream_with_context
 def generate_data_from_response(resp, chunk=250000):
     for data_chunk in resp.stream(chunk, decode_content=False):
         yield data_chunk
