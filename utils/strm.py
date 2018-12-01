@@ -13,10 +13,10 @@ def write_strms(cfg, file_id, file_paths):
     root_path = cfg.strm.root_path
     for file_path in file_paths:
         # set versions to write
-        files_to_write = {'OG': os.path.join(root_path, f'{file_path}.strm')}
+        files_to_write = {'OG': os.path.join(root_path, f'{os.path.splitext(file_path)[0]}.strm')}
         if cfg.strm.show_transcodes:
             for version in transcode_versions:
-                files_to_write[version] = os.path.join(root_path, f'{file_path} - {version}.strm')
+                files_to_write[version] = os.path.join(root_path, f'{os.path.splitext(file_path)[0]} - {version}.strm')
 
         # write strms
         for strm_version, new_file_path in files_to_write.items():
@@ -31,11 +31,11 @@ def remove_strms(cfg, file_paths):
     sorted_paths = path.sort_path_list(file_paths)
     for file_path in sorted_paths:
         # set versions to remove
-        files_to_remove = {'OG': os.path.join(root_path, f'{file_path}.strm')}
+        files_to_remove = {'OG': os.path.join(root_path, f'{os.path.splitext(file_path)[0]}.strm')}
         if cfg.strm.show_transcodes:
             for version in transcode_versions:
-                files_to_remove[version] = os.path.join(root_path, f'{file_path} - {version}.strm')
+                files_to_remove[version] = os.path.join(root_path, f'{os.path.splitext(file_path)[0]} - {version}.strm')
 
-        for strm_version, file_path in files_to_remove.items():
-            log.debug(f"Removing STRM: {file_path}")
-            path.delete(file_path)
+        for strm_version, new_file_path in files_to_remove.items():
+            log.debug(f"Removing STRM: {new_file_path}")
+            path.delete(new_file_path)
