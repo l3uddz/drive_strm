@@ -32,7 +32,7 @@ def write_strms(cfg, file_id, file_paths):
 
                 for version in transcode_versions:
 
-                    files_to_write[version] = os.path.join(root_path, f'{new_file_path} - {version}.strm')
+                    files_to_write[version] = os.path.join(root_path, f'{new_file_path} - {version}p.strm')
             else:
 
                 files_to_write = {'OG': os.path.join(root_path, f'{file_path}.strm')}
@@ -50,7 +50,7 @@ def write_strms(cfg, file_id, file_paths):
 
                 for version in transcode_versions:
 
-                    files_to_write[version] = os.path.join(root_path, os.path.split(file_path)[0], f'{new_file_path} - {version}.strm')
+                    files_to_write[version] = os.path.join(root_path, os.path.split(file_path)[0], f'{new_file_path} - {version}p.strm')
             else:
 
                 files_to_write = {'OG': os.path.join(root_path, f'{file_path}.strm')}
@@ -90,7 +90,7 @@ def remove_strms(cfg, file_paths):
 
                 for version in transcode_versions:
 
-                    files_to_remove[version] = os.path.join(root_path, f'{new_file_path} - {version}.strm')
+                    files_to_remove[version] = os.path.join(root_path, f'{new_file_path} - {version}p.strm')
 
             else:
 
@@ -109,7 +109,7 @@ def remove_strms(cfg, file_paths):
 
                 for version in transcode_versions:
 
-                    files_to_remove[version] = os.path.join(root_path, os.path.split(file_path)[0], f'{new_file_path} - {version}.strm')
+                    files_to_remove[version] = os.path.join(root_path, os.path.split(file_path)[0], f'{new_file_path} - {version}p.strm')
 
             else:
 
