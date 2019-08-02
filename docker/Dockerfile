@@ -12,8 +12,7 @@ ENV \
   BRANCH=${BRANCH} \
   COMMIT=${COMMIT} \
   DRIVE_STRM_CONFIG_PATH=/config/config.json \
-  DRIVE_STRM_TOKEN_PATH=/config/token.json \
-  DRIVE_STRM_CACHE_PATH=/config/cache.db \
+  DRIVE_STRM_VAULT_PATH=/config/vault.db \
   DRIVE_STRM_LOG_PATH=/config/activity.log
 
 # Copy app
