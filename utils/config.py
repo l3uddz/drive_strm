@@ -37,10 +37,6 @@ class AttrConfig(AttrDict):
 
 class Config(object, metaclass=Singleton):
     base_config = OrderedDict({
-        # core
-        'core': {
-            'debug': False
-        },
         # server
         'server': {
             'listen_ip': '0.0.0.0',
@@ -66,16 +62,17 @@ class Config(object, metaclass=Singleton):
             'client_id': '',
             'client_secret': '',
             'poll_interval': 120,
-            'teamdrive': False
+            'teamdrive': False,
+            'maindrive': True,
+            'teamdrives': []
         }
     })
 
-    def __init__(self, config_path, log_path):
+    def __init__(self, config_path):
         """Initializes config"""
         self.conf = OrderedDict({})
 
         self.config_path = config_path
-        self.log_path = log_path
 
     @property
     def cfg(self):
@@ -115,10 +112,6 @@ class Config(object, metaclass=Singleton):
         config['google']['allowed']['mime_types_list'] = ['video']
 
         return config
-
-    @property
-    def logfile(self):
-        return self.log_path
 
     def build_config(self):
         if not os.path.exists(self.config_path):

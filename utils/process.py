@@ -1,9 +1,7 @@
 import shlex
 import subprocess
 
-from .log import logger
-
-log = logger.get_logger(__name__)
+from loguru import logger
 
 
 def execute(command, callback=None, logs=True, shell=False):
@@ -21,7 +19,7 @@ def execute(command, callback=None, logs=True, shell=False):
                 cancel = callback(output)
                 if cancel:
                     if logs:
-                        log.info("Callback requested termination, terminating...")
+                        logger.info("Callback requested termination, terminating...")
                     process.kill()
             else:
                 total_output += "%s\n" % output
@@ -37,5 +35,5 @@ def popen(command, shell=False):
         data = subprocess.check_output(shlex.split(command) if not shell else command, shell=shell).decode().strip()
         return data
     except Exception:
-        log.exception("Exception while executing process: ")
+        logger.exception("Exception while executing process: ")
     return None

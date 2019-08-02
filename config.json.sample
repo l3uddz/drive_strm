@@ -1,12 +1,10 @@
 {
-  "core": {
-    "debug": false
-  },
   "google": {
     "allowed": {
         "file_paths": [
           "My Drive/Media/Movies/",
-          "My Drive/Media/TV/"
+          "My Drive/Media/TV/",
+          "Super Team Drive/Media/"
         ],
         "file_extensions": false,
         "file_extensions_list":[
@@ -22,7 +20,9 @@
     },
     "client_id": "",
     "client_secret": "",
-    "teamdrive": false,
+    "maindrive": true,
+    "teamdrive": true,
+    "teamdrives": ["Super Team Drive"]
     "poll_interval": 120
   },
   "server": {
@@ -33,5 +33,7 @@
   "strm": {
     "access_url": "http://ipaddress:7294/",
     "root_path": "/strm"
+    "show_transcodes": false,
+    "chunk_size": 250000
   }
 }

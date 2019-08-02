@@ -19,6 +19,7 @@ __pycache__/
 # databases
 *.db
 *.db-journal
+*.db-*
 
 # configs
 *.cfg

@@ -2,15 +2,14 @@ import hashlib
 import os
 from pathlib import Path
 
+from loguru import logger
+
 from . import process
-from .log import logger
 
 try:
     from shlex import quote as cmd_quote
 except ImportError:
     from pipes import quote as cmd_quote
-
-log = logger.get_logger(__name__)
 
 
 def get_file_extension(file):
@@ -25,7 +24,7 @@ def get_file_hash(file):
     try:
         file_size = os.path.getsize(file)
     except Exception:
-        log.exception("Exception getting file size of %r: ", file)
+        logger.exception(f"Exception getting file size of {file!r}: ")
     # set basic string to use for hash
     key = "{filename}-{size}".format(filename=os.path.basename(file), size=file_size)
     return hashlib.md5(key.encode('utf-8')).hexdigest()
@@ -85,7 +84,7 @@ def opened_files(path):
         return files
 
     except Exception:
-        log.exception("Exception retrieving open files from %r: ", path)
+        logger.exception(f"Exception retrieving open files from {path!r}: ")
     return []
 
 
@@ -102,12 +101,12 @@ def delete(path):
 
                     return True
                 except Exception:
-                    log.exception("Exception deleting '%s': ", item)
+                    logger.exception(f"Exception deleting {item!r}: ")
             else:
-                log.debug("Skipping deletion of '%s' as it does not exist", item)
+                logger.debug(f"Skipping deletion of {item!r} as it does not exist")
     else:
         if os.path.exists(path):
-            log.debug("Removing %r", path)
+            logger.debug(f"Removing {path!r}")
             try:
                 if not os.path.isdir(path):
                     os.remove(path)
@@ -116,25 +115,25 @@ def delete(path):
 
                 return True
             except Exception:
-                log.exception("Exception deleting '%s': ", path)
+                logger.exception(f"Exception deleting {path!r}: ")
         else:
-            log.debug("Skipping deletion of '%s' as it does not exist", path)
+            logger.debug(f"Skipping deletion of {path!r} as it does not exist")
     return False
 
 
 def remove_empty_dirs(path, depth):
     if os.path.exists(path):
-        log.debug("Removing empty directories from '%s' with mindepth %d", path, depth)
+        logger.debug(f"Removing empty directories from {path!r} with mindepth {depth}")
         cmd = 'find %s -mindepth %d -type d -empty -delete' % (cmd_quote(path), depth)
         try:
-            log.debug("Using: %s", cmd)
+            logger.debug(f"Using: {cmd}")
             process.execute(cmd, logs=False)
             return True
         except Exception:
-            log.exception("Exception while removing empty directories from '%s': ", path)
+            logger.exception(f"Exception while removing empty directories from {path!r}: ")
             return False
     else:
-        log.error("Cannot remove empty directories from '%s' as it does not exist", path)
+        logger.error(f"Cannot remove empty directories from {path!r} as it does not exist")
     return False
 
 
@@ -152,7 +151,7 @@ def get_size(path, excludes=None):
         proc.close()
         return int(data) if data.isdigit() else 0
     except Exception:
-        log.exception("Exception getting size of %r: ", path)
+        logger.exception(f"Exception getting size of {path!r}: ")
     return 0
 
 
@@ -161,5 +160,5 @@ def make_dirs(path):
         os.makedirs(path, exist_ok=True)
         return True
     except Exception:
-        log.exception(f"Exception creating folders at {path}: ")
+        logger.exception(f"Exception creating folders at {path}: ")
     return False
