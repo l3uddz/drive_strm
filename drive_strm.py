@@ -177,9 +177,12 @@ def new_items(items: dict = {}):
 
 def removed_items(items: dict = {}):
     logger.debug(f"Removed: {items}")
+    remove_paths = []
 
     for file_id, file_paths in items.items():
-        strm.remove_strms(cfg, file_paths)
+        remove_paths.extend(file_paths)
+
+    strm.remove_strms(cfg, remove_paths)
 
 
 def sorted_transcodes_string(transcode_versions: dict):

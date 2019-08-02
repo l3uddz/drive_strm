@@ -92,7 +92,7 @@ def delete(path):
     if isinstance(path, list):
         for item in path:
             if os.path.exists(item):
-                log.debug("Removing %r", item)
+                logger.debug(f"Removing {item!r}")
                 try:
                     if not os.path.isdir(item):
                         os.remove(item)
@@ -144,7 +144,7 @@ def get_size(path, excludes=None):
             for item in excludes:
                 cmd += ' --exclude=%s' % cmd_quote(item)
         cmd += ' %s | cut -f1' % cmd_quote(path)
-        log.debug("Using: %s", cmd)
+        logger.debug(f"Using: {cmd}")
         # get size
         proc = os.popen(cmd)
         data = proc.read().strip("\n")

@@ -77,49 +77,62 @@ def remove_strms(cfg, file_paths):
     sorted_paths = path.sort_path_list(file_paths)
 
     for file_path in sorted_paths:
-
-        # TV shows
-        if 'season' in os.path.basename(os.path.dirname(file_path)).lower():
-
-            # set versions to write
-            if cfg.strm.show_transcodes:
-
-                # set new_file_path to basename (filename without extension)
-                new_file_path = os.path.splitext(file_path)[0]
-
-                # remove quality tags
-                new_file_path = re.sub(r'\.?\s?(2160|1080|720|480|360)p', "", new_file_path, flags=re.IGNORECASE)
-
-                files_to_remove = {'OG': os.path.join(root_path, f'{new_file_path} - ORIGINAL.strm')}
-
-                for version in transcode_versions:
-                    files_to_remove[version] = os.path.join(root_path, f'{new_file_path} - {version}p.strm')
-
-            else:
-
-                files_to_remove = {'OG': os.path.join(root_path, f'{file_path}.strm')}
-
-        # Movies
+        full_path = os.path.join(root_path, file_path)
+        if os.path.isdir(full_path):
+            # this is a directory - so only remove the directory
+            files_to_remove = {'OG': full_path}
         else:
+            # TV shows
+            if 'season' in os.path.basename(os.path.dirname(file_path)).lower():
 
-            # set versions to write
-            if cfg.strm.show_transcodes:
+                # set versions to write
+                if cfg.strm.show_transcodes:
 
-                # set new_file_path to folder name
-                new_file_path = os.path.basename(os.path.dirname(file_path))
+                    # set new_file_path to basename (filename without extension)
+                    new_file_path = os.path.splitext(file_path)[0]
 
-                files_to_remove = {
-                    'OG': os.path.join(root_path, os.path.split(file_path)[0], f'{new_file_path} - ORIGINAL.strm')}
+                    # remove quality tags
+                    new_file_path = re.sub(r'\.?\s?(2160|1080|720|480|360)p', "", new_file_path, flags=re.IGNORECASE)
 
-                for version in transcode_versions:
-                    files_to_remove[version] = os.path.join(root_path, os.path.split(file_path)[0],
-                                                            f'{new_file_path} - {version}p.strm')
+                    files_to_remove = {'OG': os.path.join(root_path, f'{new_file_path} - ORIGINAL.strm')}
 
+                    for version in transcode_versions:
+                        files_to_remove[version] = os.path.join(root_path, f'{new_file_path} - {version}p.strm')
+
+                else:
+
+                    files_to_remove = {'OG': os.path.join(root_path, f'{file_path}.strm')}
+
+            # Movies
             else:
 
-                files_to_remove = {'OG': os.path.join(root_path, f'{file_path}.strm')}
+                # set versions to write
+                if cfg.strm.show_transcodes:
+
+                    # set new_file_path to folder name
+                    new_file_path = os.path.basename(os.path.dirname(file_path))
+
+                    files_to_remove = {
+                        'OG': os.path.join(root_path, os.path.split(file_path)[0], f'{new_file_path} - ORIGINAL.strm')}
+
+                    for version in transcode_versions:
+                        files_to_remove[version] = os.path.join(root_path, os.path.split(file_path)[0],
+                                                                f'{new_file_path} - {version}p.strm')
+
+                else:
+
+                    files_to_remove = {'OG': os.path.join(root_path, f'{file_path}.strm')}
 
         for strm_version, file_name in files_to_remove.items():
             logger.debug(f"Removing STRM: {file_name}")
 
+            # remove file/folder
+            is_dir = os.path.isdir(file_name)
             path.delete(file_name)
+            if not is_dir:
+                dir_path = os.path.dirname(file_name)
+                left_over_files = path.find_files(dir_path)
+                left_over_folders = path.find_folders(dir_path)
+                if not len(left_over_files) and not len(left_over_folders):
+                    logger.debug(f"Removing empty .strm folder: {dir_path}")
+                    path.delete(dir_path)
