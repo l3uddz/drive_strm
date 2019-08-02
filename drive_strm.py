@@ -58,13 +58,12 @@ manager = None
     default=os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])), "vault.db")
 )
 def click_app(verbose, config_path, log_path, vault_path):
-    global cfg, log, manager, poller, strm
+    global cfg, manager, poller, strm
 
     # Load config
     from utils.config import Config
     cfg = Config(config_path=config_path).cfg
 
-    # Load logger
     # Load logger
     log_levels = {0: 'INFO', 1: 'DEBUG', 2: 'TRACE'}
     log_level = log_levels[verbose] if verbose in log_levels else 'TRACE'
@@ -129,6 +128,19 @@ def authorize(auth_code=None, link_only=False):
         sys.exit(1)
     else:
         logger.info(f"Exchanged authorization code for an access token:\n\n{json.dumps(token, indent=2)}\n")
+    sys.exit(0)
+
+
+@click_app.command(help='Validate Google Access Token')
+def validate():
+    global manager, cfg
+
+    # validate auth token
+    if manager.is_authorized():
+        logger.info("Validated access token!")
+    else:
+        logger.error("Failed to validate access token...")
+        sys.exit(1)
     sys.exit(0)
 
 
