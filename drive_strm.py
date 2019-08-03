@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import json
 import os
 import sys
 
@@ -11,6 +10,7 @@ from loguru import logger
 import db
 from db.model import create_all_tables
 from google import GoogleDriveManager, GooglePoller
+from utils import path
 
 ############################################################
 # INIT
@@ -194,7 +194,12 @@ def removed_items(items: dict = {}):
     for file_id, file_paths in items.items():
         remove_paths.extend(file_paths)
 
+    # remove strm files
     strm.remove_strms(cfg, remove_paths)
+    # remove empty folders
+    if cfg.strm.remove_empty_dirs:
+        logger.debug(f"Removing empty directories from: {cfg.strm.root_path!r}")
+        path.remove_empty_dirs(cfg.strm.root_path, cfg.strm.empty_dir_depth)
 
 
 def sorted_transcodes_string(transcode_versions: dict):

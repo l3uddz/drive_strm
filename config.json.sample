@@ -32,7 +32,9 @@
   },
   "strm": {
     "access_url": "http://ipaddress:7294/",
-    "root_path": "/strm"
+    "root_path": "/strm",
+    "remove_empty_dirs": true,
+    "empty_dir_depth": 4,
     "show_transcodes": false,
     "chunk_size": 250000
   }

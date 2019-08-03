@@ -47,6 +47,8 @@ class Config(object, metaclass=Singleton):
         'strm': {
             'access_url': 'http://reachable.url.com',
             'root_path': '/strm',
+            'remove_empty_dirs': True,
+            'empty_dir_depth': 4,
             'show_transcodes': False,
             'chunk_size': 250000
         },

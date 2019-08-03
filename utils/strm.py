@@ -126,13 +126,5 @@ def remove_strms(cfg, file_paths):
         for strm_version, file_name in files_to_remove.items():
             logger.debug(f"Removing STRM: {file_name}")
 
-            # remove file/folder
-            is_dir = os.path.isdir(file_name)
+            # remove file
             path.delete(file_name)
-            if not is_dir:
-                dir_path = os.path.dirname(file_name)
-                left_over_files = path.find_files(dir_path)
-                left_over_folders = path.find_folders(dir_path)
-                if not len(left_over_files) and not len(left_over_folders):
-                    logger.debug(f"Removing empty .strm folder: {dir_path}")
-                    path.delete(dir_path)
