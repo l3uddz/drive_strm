@@ -79,8 +79,8 @@ def remove_strms(cfg, file_paths):
     for file_path in sorted_paths:
         full_path = os.path.join(root_path, file_path)
         if os.path.isdir(full_path):
-            # this is a directory
-            continue
+            # this is a directory - so remove the directory (and all contents)
+            files_to_remove = {'OG': full_path}
         else:
             # TV shows
             if 'season' in os.path.basename(os.path.dirname(file_path)).lower():

@@ -1,5 +1,6 @@
 import hashlib
 import os
+import shutil
 from pathlib import Path
 
 from loguru import logger
@@ -97,9 +98,9 @@ def delete(path):
                     if not os.path.isdir(item):
                         os.remove(item)
                     else:
-                        os.rmdir(item)
-
+                        shutil.rmtree(path, ignore_errors=True)
                     return True
+
                 except Exception:
                     logger.exception(f"Exception deleting {item!r}: ")
             else:
@@ -111,9 +112,9 @@ def delete(path):
                 if not os.path.isdir(path):
                     os.remove(path)
                 else:
-                    os.rmdir(path)
-
+                    shutil.rmtree(path, ignore_errors=True)
                 return True
+
             except Exception:
                 logger.exception(f"Exception deleting {path!r}: ")
         else:

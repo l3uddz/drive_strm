@@ -773,6 +773,8 @@ class GoogleDrive:
 
         # process changes
         for change in data['changes']:
+            logger.trace(f"Processing change:\n{json.dumps(change, indent=2)}\n")
+
             file_item = None
             if 'fileId' in change and 'removed' in change and 'file' not in change:
                 # this is a strange remove - lets account for it
