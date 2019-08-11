@@ -68,7 +68,7 @@ def write_strms(cfg, file_id, teamdrive_id, file_paths):
                         if '?' in strm_url:
                             tmp_url = f'{strm_url}&transcode={strm_version}'
                         else:
-                            f'{strm_url}?transcode={strm_version}'
+                            tmp_url = f'{strm_url}?transcode={strm_version}'
                     fp.write(tmp_url)
 
 
